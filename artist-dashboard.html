@@ -1,48 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Artist Dashboard - Artisans Hub</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { margin: 10px 0; padding: 8px; width: 100%; }
-    img { max-width: 200px; margin: 10px 0; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artist Dashboard - Artisans Hub</title>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage.js"></script>
+<style>
+body { font-family: Arial; padding: 20px; }
+input, button { padding: 10px; margin: 10px 0; width: 250px; }
+img { max-width: 200px; display: block; margin: 10px 0; }
+</style>
 </head>
 <body>
-  <h1>Artist Dashboard</h1>
-  <h3>Upload Your Artwork</h3>
-  <input type="text" id="artName" placeholder="Artwork Name" />
-  <input type="text" id="artURL" placeholder="Artwork Image URL" />
-  <button onclick="uploadArtwork()">Upload Artwork</button>
+<h1>Artist Dashboard</h1>
+<input type="text" id="artName" placeholder="Artwork Name" /><br>
+<input type="file" id="artFile" /><br>
+<button onclick="uploadArtwork()">Upload Artwork</button>
+<div id="artworks"></div>
 
-  <h3>Your Uploaded Artworks</h3>
-  <div id="artworks"></div>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC06xn0scMmENe83SIEEZlgZ_PZPz89bXo",
+  authDomain: "artisans-hub-3a821.firebaseapp.com",
+  projectId: "artisans-hub-3a821",
+  storageBucket: "artisans-hub-3a821.firebasestorage.app",
+  messagingSenderId: "476881021272",
+  appId: "1:476881021272:web:61a6b0bfe1f9db2e3a5d2d"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-  <script>
-    let artworks = [];
+auth.onAuthStateChanged(user => {
+  if(!user) window.location.href = "index.html";
+});
 
-    function uploadArtwork() {
-      const name = document.getElementById('artName').value;
-      const url = document.getElementById('artURL').value;
-      if(name && url){
-        artworks.push({name, url});
-        displayArtworks();
-        document.getElementById('artName').value = '';
-        document.getElementById('artURL').value = '';
-      }
-    }
+async function uploadArtwork(){
+  const name = document.getElementById('artName').value;
+  const file = document.getElementById('artFile').files[0];
+  if(!name || !file) return alert("Enter name and select file");
 
-    function displayArtworks() {
-      const container = document.getElementById('artworks');
-      container.innerHTML = '';
-      artworks.forEach(art => {
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${art.name}</strong><br><img src="${art.url}" />`;
-        container.appendChild(div);
-      });
-    }
-  </script>
+  const storageRef = storage.ref().child('artworks/'+file.name);
+  await storageRef.put(file);
+  const url = await storageRef.getDownloadURL();
+
+  await db.collection('artworks').add({
+    name: name,
+    imageUrl: url,
+    artistId: auth.currentUser.uid,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  alert("Artwork uploaded!");
+  displayArtworks();
+}
+
+async function displayArtworks(){
+  const snapshot = await db.collection('artworks')
+    .where('artistId', '==', auth.currentUser.uid)
+    .orderBy('timestamp', 'desc')
+    .get();
+  const container = document.getElementById('artworks');
+  container.innerHTML = '';
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement('div');
+    div.innerHTML = `<strong>${data.name}</strong><br><img src="${data.imageUrl}" />`;
+    container.appendChild(div);
+  });
+}
+
+displayArtworks();
+</script>
 </body>
 </html>
