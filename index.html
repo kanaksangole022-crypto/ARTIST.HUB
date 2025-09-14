@@ -4,22 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Artisans Hub - Login</title>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore.js"></script>
   <style>
     body { font-family: Arial; text-align: center; padding: 50px; }
-    button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+    input, select, button { padding: 10px; margin: 10px; font-size: 16px; width: 250px; }
+    #error { color: red; }
   </style>
 </head>
 <body>
   <h1>Welcome to Artisans Hub</h1>
-  <h2>Login as:</h2>
-  <button onclick="login('artist')">Artist</button>
-  <button onclick="login('buyer')">Buyer</button>
+  <h2>Login</h2>
+  <div>
+    <input type="email" id="email" placeholder="Email" /><br>
+    <input type="password" id="password" placeholder="Password" /><br>
+    <select id="role">
+      <option value="artist">Login as Artist</option>
+      <option value="buyer">Login as Buyer</option>
+    </select><br>
+    <button onclick="login()">Login / Signup</button>
+    <p id="error"></p>
+  </div>
 
   <script>
-    function login(userType) {
-      // Save userType in localStorage for demo (replace with Firebase Auth later)
-      localStorage.setItem('userType', userType);
-      if(userType === 'artist') {
+    // Firebase config - apne project ka use karo
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const errorEl = document.getElementById('error');
+
+      try {
+        // Try login first
+        let userCredential = await auth.signInWithEmailAndPassword(email, password);
+        redirectUser(userCredential.user.uid, role);
+      } catch(err) {
+        if(err.code === 'auth/user-not-found'){
+          // Signup if user not found
+          try {
+            let userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // Save role in Firestore
+            await db.collection('users').doc(userCredential.user.uid).set({role: role});
+            redirectUser(userCredential.user.uid, role);
+          } catch(signupErr){
+            errorEl.innerText = signupErr.message;
+          }
+        } else {
+          errorEl.innerText = err.message;
+        }
+      }
+    }
+
+    function redirectUser(uid, role){
+      if(role === 'artist'){
         window.location.href = 'artist-dashboard.html';
       } else {
         window.location.href = 'buyer-dashboard.html';
