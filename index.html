@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisans Hub - Login</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 50px; }
+    button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Artisans Hub</h1>
+  <h2>Login as:</h2>
+  <button onclick="login('artist')">Artist</button>
+  <button onclick="login('buyer')">Buyer</button>
+
+  <script>
+    function login(userType) {
+      // Save userType in localStorage for demo (replace with Firebase Auth later)
+      localStorage.setItem('userType', userType);
+      if(userType === 'artist') {
+        window.location.href = 'artist-dashboard.html';
+      } else {
+        window.location.href = 'buyer-dashboard.html';
+      }
+    }
+  </script>
+</body>
+</html>
