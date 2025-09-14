@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyer Dashboard - Artisans Hub</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .art { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    img { max-width: 200px; display: block; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Buyer Dashboard</h1>
+  <h3>Available Artworks</h3>
+  <div id="artworks"></div>
+  <script>
+    // For demo, same artworks from artist (replace with Firebase Firestore in real)
+    const artworks = JSON.parse(localStorage.getItem('artworks')) || [
+      {name: "Sample Art", url: "https://via.placeholder.com/150"}
+    ];
+
+    function displayArtworks() {
+      const container = document.getElementById('artworks');
+      container.innerHTML = '';
+      artworks.forEach(art => {
+        const div = document.createElement('div');
+        div.className = 'art';
+        div.innerHTML = `<strong>${art.name}</strong><br><img src="${art.url}" /><button onclick="buyArt('${art.name}')">Buy</button>`;
+        container.appendChild(div);
+      });
+    }
+    function buyArt(name) {
+      alert(`You bought ${name}!`);
+    }
+    displayArtworks();
+  </script>
+</body>
+</html>
+
+
