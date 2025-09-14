@@ -1,41 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buyer Dashboard - Artisans Hub</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    .art { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-    img { max-width: 200px; display: block; margin: 10px 0; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Dashboard - Artisans Hub</title>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore.js"></script>
+<style>
+body { font-family: Arial; padding: 20px; }
+.art { border:1px solid #ccc; padding:10px; margin:10px 0; }
+img { max-width:200px; display:block; margin:10px 0; }
+button { padding:8px; }
+</style>
 </head>
 <body>
-  <h1>Buyer Dashboard</h1>
-  <h3>Available Artworks</h3>
-  <div id="artworks"></div>
-  <script>
-    // For demo, same artworks from artist (replace with Firebase Firestore in real)
-    const artworks = JSON.parse(localStorage.getItem('artworks')) || [
-      {name: "Sample Art", url: "https://via.placeholder.com/150"}
-    ];
+<h1>Buyer Dashboard</h1>
+<div id="artworks"></div>
 
-    function displayArtworks() {
-      const container = document.getElementById('artworks');
-      container.innerHTML = '';
-      artworks.forEach(art => {
-        const div = document.createElement('div');
-        div.className = 'art';
-        div.innerHTML = `<strong>${art.name}</strong><br><img src="${art.url}" /><button onclick="buyArt('${art.name}')">Buy</button>`;
-        container.appendChild(div);
-      });
-    }
-    function buyArt(name) {
-      alert(`You bought ${name}!`);
-    }
-    displayArtworks();
-  </script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC06xn0scMmENe83SIEEZlgZ_PZPz89bXo",
+  authDomain: "artisans-hub-3a821.firebaseapp.com",
+  projectId: "artisans-hub-3a821",
+  storageBucket: "artisans-hub-3a821.firebasestorage.app",
+  messagingSenderId: "476881021272",
+  appId: "1:476881021272:web:61a6b0bfe1f9db2e3a5d2d"
+};
+
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user => {
+  if(!user) window.location.href = "index.html";
+  else displayArtworks();
+});
+
+async function displayArtworks(){
+  const snapshot = await db.collection('artworks')
+    .orderBy('timestamp', 'desc')
+    .get();
+  const container = document.getElementById('artworks');
+  container.innerHTML = '';
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement('div');
+    div.className = 'art';
+    div.innerHTML = `<strong>${data.name}</strong><br>
+      <img src="${data.imageUrl}" />
+      <button onclick="buyArt('${doc.id}')">Buy</button>`;
+    container.appendChild(div);
+  });
+}
+
+function buyArt(artId){
+  alert("Congratulations! You bought this artwork.");
+  // Future: Save purchase info in Firestore
+}
+</script>
 </body>
 </html>
-
-
