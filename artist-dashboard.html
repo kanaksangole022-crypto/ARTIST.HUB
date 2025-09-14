@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Dashboard - Artisans Hub</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 10px 0; padding: 8px; width: 100%; }
+    img { max-width: 200px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Artist Dashboard</h1>
+  <h3>Upload Your Artwork</h3>
+  <input type="text" id="artName" placeholder="Artwork Name" />
+  <input type="text" id="artURL" placeholder="Artwork Image URL" />
+  <button onclick="uploadArtwork()">Upload Artwork</button>
+
+  <h3>Your Uploaded Artworks</h3>
+  <div id="artworks"></div>
+
+  <script>
+    let artworks = [];
+
+    function uploadArtwork() {
+      const name = document.getElementById('artName').value;
+      const url = document.getElementById('artURL').value;
+      if(name && url){
+        artworks.push({name, url});
+        displayArtworks();
+        document.getElementById('artName').value = '';
+        document.getElementById('artURL').value = '';
+      }
+    }
+
+    function displayArtworks() {
+      const container = document.getElementById('artworks');
+      container.innerHTML = '';
+      artworks.forEach(art => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${art.name}</strong><br><img src="${art.url}" />`;
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
